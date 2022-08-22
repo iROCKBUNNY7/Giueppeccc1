@@ -1,4 +1,4 @@
-package controller
+package utils
 
 import (
 	"fmt"
@@ -46,7 +46,7 @@ func SavePath(md5Str string) string {
 }
 
 func ParseUrlPath(urlPath string) string {
-	if !isMd5Str(urlPath) {
+	if !IsMd5Str(urlPath) {
 		return ""
 	}
 

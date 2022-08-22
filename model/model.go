@@ -11,15 +11,29 @@ type ResponseBaseModel struct {
 }
 
 type FileInfoModel struct {
-	Size     uint   `json:"size"`
-	Mime     string `json:"mime"`
-	FileID   string `json:"fileId"`
-	FileName string `json:"fileName"`
+	Size     uint   `json:"size" db:"size"`
+	Mime     string `json:"mime" db:"mime"`
+	FileID   string `json:"fileId" db:"fileid"`
+	FileName string `json:"fileName" db:"fielname"`
 }
 
 type ResponseModel struct {
 	ResponseBaseModel
 	Data *FileInfoModel `json:"data"`
+}
+
+type ResponseFileModel struct {
+	ResponseBaseModel
+	Data []*FileInfoModel `json:"data"`
+}
+
+func ResponseFileModelJson(r *ResponseFileModel) []byte {
+	data, err := json.Marshal(r)
+	if err != nil {
+		return nil
+	}
+
+	return data
 }
 
 func ResponseJson(r []*ResponseModel) []byte {

@@ -8,6 +8,7 @@ import (
 // RegisterRoute Register Route.
 func RegisterRoute() {
 	server.HandleFunc("/", controller.Index)
-	server.HandleFunc("/upload", controller.Upload)
-	server.HandleFunc("/delete/", controller.Delete)
+	server.AuthMiddlewareHandler("/admin/upload", controller.Upload)
+	server.AuthMiddlewareHandler("/admin/delete/", controller.Delete)
+	server.AuthMiddlewareHandler("/admin/getall", controller.GetAll)
 }

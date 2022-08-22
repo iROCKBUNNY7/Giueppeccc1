@@ -3,12 +3,13 @@ package controller
 import (
 	"fmt"
 	"go-image/cache"
+	"go-image/db"
 	"go-image/filehandler"
 	"go-image/model"
+	"go-image/utils"
 	"io"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -31,7 +32,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := ParseUrlPath(parse.Path[1:])
+	path := utils.ParseUrlPath(parse.Path[1:])
 	if path == "" {
 		http.NotFound(w, r)
 		return
@@ -39,7 +40,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	model.ParamHandler(req, r)
 
-	dirPath := imagePath + path
+	dirPath := utils.ImagePath + path
 	sourceFilePath := dirPath + "/0_0"
 	md5Str := parse.Path[1:]
 	var cacheKey string
@@ -111,11 +112,12 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	//w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	r.ParseMultipartForm(1024 << 14)
-
+	if r.MultipartForm == nil {
+		http.Error(w, "参数错误", http.StatusBadRequest)
+		return
+	}
 	files := r.MultipartForm.File["files"]
-
-	var response []*model.ResponseModel
-
+	var response = make([]*model.ResponseModel, 0)
 	for i := 0; i < len(files); i++ {
 		resp := model.NewResponseModel()
 		// fileInfo := new(model.FileInfoModel)
@@ -143,7 +145,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		resp.Data.Mime = http.DetectContentType(b[:512])
 		resp.Data.Size = uint(len(b))
 
-		if !IsType(resp.Data.Mime) {
+		if !utils.IsType(resp.Data.Mime) {
 			resp.Success = false
 			resp.Message = "图片类型不符合"
 			response = append(response, resp)
@@ -151,11 +153,11 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		md5Str := filehandler.GetHash(&b)
-		md5Path := SavePath(md5Str)
+		md5Path := utils.SavePath(md5Str)
 
 		file.Seek(0, 0)
 
-		dirPath := imagePath + md5Path + "/"
+		dirPath := utils.ImagePath + md5Path + "/"
 
 		err = os.MkdirAll(dirPath, os.ModePerm)
 		if err != nil {
@@ -181,6 +183,8 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		// 	break
 		// }
 
+		db.Insert(resp.Data)
+
 		resp.Success = true
 		resp.Message = "OK"
 		resp.Data.FileID = md5Str
@@ -190,13 +194,19 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	w.Write(model.ResponseJson(response))
 }
 
-func Delete(w http.ResponseWriter, r *http.Request) {
-	remoteIP := getRemoteIp(r)
-	if !IsAllow(remoteIP) {
-		http.Error(w, "禁止访问", http.StatusForbidden)
-		return
+func GetAll(w http.ResponseWriter, r *http.Request) {
+	var resp = &model.ResponseFileModel{}
+	resp.Success = true
+	res, err := db.GetAll()
+	if err != nil {
+		resp.Success = false
+		resp.Message = "获取信息失败"
 	}
+	resp.Data = res
+	w.Write(model.ResponseFileModelJson(resp))
+}
 
+func Delete(w http.ResponseWriter, r *http.Request) {
 	urlStr := r.URL.String()
 	if urlStr == "/favicon.ico" {
 		return
@@ -210,14 +220,14 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	md5Str := parse.Path[strings.LastIndex(parse.Path, "/")+1:]
 
-	if !isMd5Str(md5Str) {
+	if !utils.IsMd5Str(md5Str) {
 		http.NotFound(w, r)
 		return
 	}
 
-	md5Path := SavePath(md5Str)
-	if _, err = os.Stat(imagePath + md5Path); err == nil || os.IsExist(err) {
-		err = os.RemoveAll(imagePath + md5Path)
+	md5Path := utils.SavePath(md5Str)
+	if _, err = os.Stat(utils.ImagePath + md5Path); err == nil || os.IsExist(err) {
+		err = os.RemoveAll(utils.ImagePath + md5Path)
 		if err != nil {
 			http.Error(w, "删除失败", http.StatusInternalServerError)
 			return
@@ -227,7 +237,8 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 			cache.Del(md5Str)
 		}
 
-		log.Println(remoteIP, "|delete|", md5Str)
+		db.Delete(md5Str)
+
 		fmt.Fprintln(w, "ok")
 	} else {
 		log.Println(err)
@@ -239,21 +250,4 @@ func responseError(w http.ResponseWriter, code int) {
 	html := fmt.Sprintf("<html><body><h1>%s</h1></body></html>", model.StatusText(code))
 	w.WriteHeader(code)
 	fmt.Fprintln(w, html)
-}
-
-func getRemoteIp(req *http.Request) string {
-	remoteAddr := req.RemoteAddr
-	if ip := req.Header.Get("X-Real-IP"); ip != "" {
-		remoteAddr = ip
-	} else if ip = req.Header.Get("X-Forwarded-For"); ip != "" {
-		remoteAddr = ip
-	} else {
-		remoteAddr, _, _ = net.SplitHostPort(remoteAddr)
-	}
-
-	if remoteAddr == "::1" {
-		remoteAddr = "127.0.0.1"
-	}
-
-	return remoteAddr
 }

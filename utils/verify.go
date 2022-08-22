@@ -1,16 +1,16 @@
-package controller
+package utils
 
 import (
 	"strings"
 )
 
-func isMd5Str(str string) bool {
+func IsMd5Str(str string) bool {
 	return regexpURLParse.MatchString(str)
 }
 
 //IsType 判断类型是否允许上传
 func IsType(typeStr string) bool {
-	for _, v := range imageTypes {
+	for _, v := range ImageTypes {
 		if strings.Contains(typeStr, strings.ToLower(v)) {
 			return true
 		}
@@ -20,11 +20,11 @@ func IsType(typeStr string) bool {
 }
 
 func IsAllow(ip string) bool {
-	if len(adminIPs) == 1 && adminIPs[0] == "*" {
+	if len(AdminIPs) == 1 && AdminIPs[0] == "*" {
 		return true
 	}
 
-	for _, v := range adminIPs {
+	for _, v := range AdminIPs {
 		if v == ip {
 			return true
 		}
