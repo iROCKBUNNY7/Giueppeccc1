@@ -106,7 +106,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	w.Write(*b)
 }
 
-//Uploads upload files function.
+// Uploads upload files function.
 func Upload(w http.ResponseWriter, r *http.Request) {
 	//允许跨域
 	//w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -183,12 +183,12 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		// 	break
 		// }
 
-		db.Insert(resp.Data)
-
 		resp.Success = true
 		resp.Message = "OK"
 		resp.Data.FileID = md5Str
 		response = append(response, resp)
+
+		db.Insert(resp.Data)
 	}
 
 	w.Write(model.ResponseJson(response))

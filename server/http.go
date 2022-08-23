@@ -12,12 +12,12 @@ import (
 
 var serveMux *http.ServeMux = http.NewServeMux()
 
-//HandleFunc Register route from HandleFunc.
+// HandleFunc Register route from HandleFunc.
 func HandleFunc(pattern string, handler http.HandlerFunc) {
 	serveMux.HandleFunc(pattern, handler)
 }
 
-//Handle Register route from Handle.
+// Handle Register route from Handle.
 func Handle(pattern string, handler http.Handler) {
 	serveMux.Handle(pattern, handler)
 }
@@ -59,13 +59,12 @@ func getRemoteIp(req *http.Request) string {
 	return remoteAddr
 }
 
-//RunServer start HTTP server.
+// RunServer start HTTP server.
 func RunServer() {
-
 	webPath := config.GetSetting("http.webPath")
 
 	if len(webPath) != 0 {
-		serveMux.Handle("/admin/index/", http.StripPrefix("/index/", http.FileServer(http.Dir(webPath))))
+		serveMux.Handle("/admin/index/", http.StripPrefix("/admin/index/", http.FileServer(http.Dir(webPath))))
 	}
 
 	readTimeout, err := strconv.Atoi(config.GetSetting("http.readTimeout"))

@@ -28,7 +28,7 @@ func Insert(fileInfo *model.FileInfoModel) {
 }
 
 func GetAll() ([]*model.FileInfoModel, error) {
-	sqlStr := "select * from infos"
+	sqlStr := "select fileid,filename,mime,size from infos"
 	rows, err := dbClient.Query(sqlStr)
 	if err != nil {
 		log.Println("select all list failed", err)
@@ -39,7 +39,7 @@ func GetAll() ([]*model.FileInfoModel, error) {
 	var result = make([]*model.FileInfoModel, 0)
 	for rows.Next() {
 		var fileInfo = &model.FileInfoModel{}
-		err := rows.Scan(fileInfo)
+		err := rows.Scan(&fileInfo.FileID, &fileInfo.FileName, &fileInfo.Mime, &fileInfo.Size)
 		if err != nil {
 			log.Println("rows scan failed", err)
 			return nil, err
