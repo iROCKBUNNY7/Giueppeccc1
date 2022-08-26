@@ -36,6 +36,9 @@
             margin-left: 30px;
         }
         .clearfix { clear: both; }
+        .el-link {
+          margin-left: 10px;
+        }
     </style>
 
 </head>
@@ -81,6 +84,7 @@
                 <el-table-column label="Action">
                   <template #default="scope">
                     <el-button size="small" type="danger" @click="del(scope.$index,scope.row)">删除</el-button>
+                    <el-link  :href="'/'+scope.row.fileId" target="_blank" type="primary">查看</el-link>
                   </template>
                 </el-table-column>
               </el-table>
@@ -100,6 +104,7 @@
           handleExceed(files){
             this.$refs.upload.clearFiles();
             const file=files[0];
+            file.uid = ElementPlus.genFileId();
             this.$refs.upload.handleStart(file);
           },
           submitUpload(){
