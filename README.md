@@ -1,10 +1,10 @@
 # goimg
 
-#### 介绍
+## 介绍
 一个轻量型的图片服务器
 
 
-#### 软件架构
+## 软件架构
 上传接口：
 http://127.0.0.1:8080/upload
 
@@ -41,4 +41,22 @@ http://127.0.0.1:8080/5781339b809d5f18132f5c4fbe9df2fe?r=90   //r 旋转图像
 裁切
 http://127.0.0.1:8080/5781339b809d5f18132f5c4fbe9df2fe?x=10&y=10&w=100&h=100  //四个值同时传递时，x和y起始坐标点，w h 要裁切的宽度和高度
 
+
+## 软件运行所需要的环境
+
+### Linux
+
+软件用到了ImageMagick库,需要安装该库
+
+下载 https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.0-49.tar.gz
+```bash
+yum install libtool-ltdl-devel install libjpeg-devel libpng-devel libwebp-devel libtiff-devel zlib-devel freetype-devel openjpeg2-devel giflib-devel
+
+./configure --prefix=/usr/local/ImageMagick --with-modules --enable-shared
+
+make & make install
+
+export PKG_CONFIG_PATH=/usr/local/ImageMagick/lib/pkgconfig/
+export LD_LIBRARY_PATH=/usr/local/ImageMagick/lib
+```
 

@@ -8,7 +8,7 @@ func IsMd5Str(str string) bool {
 	return regexpURLParse.MatchString(str)
 }
 
-//IsType 判断类型是否允许上传
+// IsType 判断类型是否允许上传
 func IsType(typeStr string) bool {
 	for _, v := range ImageTypes {
 		if strings.Contains(typeStr, strings.ToLower(v)) {
@@ -20,15 +20,11 @@ func IsType(typeStr string) bool {
 }
 
 func IsAllow(ip string) bool {
-	if len(AdminIPs) == 1 && AdminIPs[0] == "*" {
+	if AdminIPs == "*" {
 		return true
+	} else if strings.Contains(AdminIPs, ip) {
+		return true
+	} else {
+		return false
 	}
-
-	for _, v := range AdminIPs {
-		if v == ip {
-			return true
-		}
-	}
-
-	return false
 }
